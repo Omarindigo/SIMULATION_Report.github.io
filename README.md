@@ -1,5 +1,5 @@
-# SIMULATION Report
+# Simulation R&D
 
-Aesthetic Creatures — MuJoCo Humanoid SAC training progression from 200K to 800K timesteps.
+Reinforcement learning for continuous control — from custom PyBullet creatures to 800K SAC timesteps on MuJoCo Humanoid-v4.
 
-[View the report](https://omarindigo.github.io/SIMULATION_Report.github.io/)
+[View the site](https://omarindigo.github.io/SIMULATION_Report.github.io/)

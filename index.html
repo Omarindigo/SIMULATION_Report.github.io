@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Aesthetic Creatures — MuJoCo Humanoid SAC training progression report from 200K to 800K timesteps." />
-  <title>Aesthetic Creatures — Simulation Report</title>
+  <meta name="description" content="Simulation R&D — Reinforcement learning for continuous control using SAC on MuJoCo Humanoid-v4." />
+  <title>Simulation R&D — RL for Continuous Control</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,197 +14,151 @@
 
   <header class="report-header">
     <div class="container">
-      <p class="report-header__label">Simulation Report &mdash; May 2026</p>
-      <h1 class="report-header__title">Aesthetic Creatures</h1>
-      <p class="report-header__subtitle">MuJoCo Humanoid Locomotion &middot; SAC Training &middot; 200K → 800K Timesteps</p>
-      <p class="report-header__meta">
-        <span>Algorithm: Soft Actor-Critic (SAC)</span>
-        <span>Environment: Humanoid-v4</span>
-        <span>Hardware: NVIDIA GPU (CUDA)</span>
-      </p>
+      <p class="report-header__label">Research &amp; Development &middot; May 2026</p>
+      <h1 class="report-header__title">Simulation R&D</h1>
+      <p class="report-header__subtitle">Reinforcement Learning for Continuous Control — From PyBullet Creatures to 800K SAC Timesteps</p>
     </div>
   </header>
 
   <nav class="toc" aria-label="Table of contents">
     <div class="container">
       <ul>
-        <li><a href="#abstract">1. Abstract</a></li>
-        <li><a href="#methodology">2. Methodology</a></li>
-        <li><a href="#results">3. Results</a></li>
-        <li><a href="#discussion">4. Discussion</a></li>
-        <li><a href="#supplementary">5. Supplementary</a></li>
+        <li><a href="#context">1. Context</a></li>
+        <li><a href="#phase1">2. Phase 1: Custom Creatures</a></li>
+        <li><a href="#pivot">3. The Pivot</a></li>
+        <li><a href="#phase2">4. Phase 2: SAC Humanoid</a></li>
+        <li><a href="#results">5. Results</a></li>
+        <li><a href="#learnings">6. Key Learnings</a></li>
+        <li><a href="#next">7. Next Steps</a></li>
       </ul>
     </div>
   </nav>
 
   <main class="report-body">
 
-    <section id="abstract" class="section">
+    <section id="context" class="section">
       <div class="container">
-        <h2 class="section__num">1. Abstract</h2>
+        <h2 class="section__num">1. Context</h2>
         <p class="section__body">
-          This report documents the training of a humanoid locomotion agent using Soft Actor-Critic (SAC) 
-          on the MuJoCo physics engine via Gymnasium's Humanoid-v4 environment. The project began with 
-          Proximal Policy Optimization (PPO) but transitioned to SAC due to its superior sample efficiency, 
-          GPU utilization, and exploration characteristics. A total of <strong>800,000 timesteps</strong> of 
-          training were completed, with checkpoints saved every 25,000 steps. Four key checkpoints 
-          (200K, 400K, 600K, 800K) were rendered at <strong>1920 × 1080</strong> resolution to visualise 
-          the progression of gait quality — from early-stage stumbling to stable, fluid locomotion at the 
-          final checkpoint. This page serves as both a report and a visual record of that progression.
+          This documents an exploration into reinforcement learning for emergent locomotion. The original goal was a pipeline from custom 3D creature design (Blender) through physics simulation (PyBullet) and RL training (PPO) to a real-time Three.js viewer — a zoo of creatures that learned to move on their own, not through hand animation.
+        </p>
+        <p class="section__body">
+          The project hit scalability limits with the original approach. PPO was too slow, the custom physics pipeline was fragile, and meaningful results required more data and faster iteration than the setup could deliver. The pivot to Gymnasium MuJoCo environments with SAC produced a working result: a Humanoid agent trained to 800K timesteps with clear gait progression.
+        </p>
+        <p class="section__body">
+          This page records both phases — the original vision and the practical outcome — as an honest R&D log rather than a polished report.
         </p>
       </div>
     </section>
 
-    <section id="methodology" class="section">
+    <section id="phase1" class="section">
       <div class="container">
-        <h2 class="section__num">2. Methodology</h2>
+        <h2 class="section__num">2. Phase 1: Custom Creatures</h2>
 
+        <h3 class="section__subtitle">2.1 The Pipeline</h3>
         <p class="section__body">
-          This project uses Stable-Baselines3 (SB3) to implement Soft Actor-Critic (SAC) as a reinforcement learning framework for continuous-control training. The methodology centres on how the agent is constructed, how experience is gathered, how learning occurs across timesteps, and how training progress is interpreted.
+          The original pipeline was designed as:
         </p>
-
-        <h3 class="section__subtitle">2.1 Reinforcement Learning Framework</h3>
+        <div class="code-block">
+GLB body design (Blender)
+  &rarr; physics simulation (PyBullet)
+  &rarr; RL training (PPO / oscillator controllers)
+  &rarr; trajectory export (JSON)
+  &rarr; real-time viewer (Three.js)</div>
         <p class="section__body">
-          The model is trained within a reinforcement learning setting in which an agent interacts with an environment over repeated cycles. At each timestep, the agent receives an observation of the environment, selects an action, receives a reward signal, and transitions to a new state. This loop produces the training data from which the policy is learned.
-        </p>
-        <p class="section__body">
-          In this setup, Stable-Baselines3 provides the implementation infrastructure, while Soft Actor-Critic provides the learning logic. SB3 handles the neural network training pipeline, replay buffer management, optimisation loop, checkpointing, and interaction with Gymnasium or MuJoCo environments. SAC serves as the algorithmic core that updates the policy and value functions.
-        </p>
-
-        <h3 class="section__subtitle">2.2 Choice of Algorithm: Soft Actor-Critic</h3>
-        <p class="section__body">
-          Soft Actor-Critic is used because it is designed for continuous action spaces, which makes it suitable for robotic control, locomotion, articulated motion, and other environments where actions are real-valued rather than discrete. SAC is an off-policy algorithm, meaning that it stores previously collected transitions in a replay buffer and reuses them during training. This increases sample efficiency and stabilises learning.
-        </p>
-        <p class="section__body">
-          The SAC framework consists of three interdependent components:
-        </p>
-        <ul class="section__list">
-          <li><strong>Actor network:</strong> learns a stochastic policy that maps observations to actions.</li>
-          <li><strong>Critic networks:</strong> estimate the expected return of actions taken in particular states.</li>
-          <li><strong>Target critic networks:</strong> stabilise learning by slowly tracking the critic parameters.</li>
-        </ul>
-        <p class="section__body">
-          SAC also introduces an entropy objective, which encourages the policy to remain exploratory during training. Rather than collapsing immediately into a narrow deterministic behaviour, the agent continues to sample from a distribution over actions. This is important during early and middle stages of training, especially in environments where useful behaviour emerges gradually.
-        </p>
-
-        <h3 class="section__subtitle">2.3 Environment and Agent Interaction</h3>
-        <p class="section__body">
-          The training environment is instantiated through Gymnasium, typically with a continuous-control task such as MuJoCo locomotion. Once initialised, the agent begins interacting with the environment step by step.
-        </p>
-        <p class="section__body">
-          Each timestep includes the following sequence:
-        </p>
-        <ol class="section__list section__list--ordered">
-          <li>The environment provides the current observation.</li>
-          <li>The actor network selects an action.</li>
-          <li>The environment executes the action.</li>
-          <li>A reward is returned.</li>
-          <li>The resulting transition is stored in replay memory.</li>
-        </ol>
-        <p class="section__body">
-          This sequence defines one timestep. Therefore, a label such as "400,000 timesteps" means that this interaction cycle occurred 400,000 times. It is a measure of training duration and data accumulation, not a measure of success by itself.
-        </p>
-
-        <h3 class="section__subtitle">2.4 Data Collection and Replay Buffer</h3>
-        <p class="section__body">
-          All interaction data is stored in a replay buffer. Each stored transition includes:
-        </p>
-        <ul class="section__list">
-          <li>current state or observation</li>
-          <li>action taken</li>
-          <li>reward received</li>
-          <li>next observation</li>
-          <li>terminal or truncation flag</li>
-        </ul>
-        <p class="section__body">
-          Because SAC is off-policy, the model does not train only on the newest transition. Instead, it repeatedly samples mini-batches from this replay buffer. This allows the agent to learn from a broader distribution of past experience and reduces the instability that can arise from relying only on recent rollouts.
-        </p>
-
-        <h3 class="section__subtitle">2.5 Learning Procedure</h3>
-        <p class="section__body">
-          Training proceeds iteratively during interaction with the environment. After enough transitions are collected, the model begins gradient-based updates. These updates occur in three linked stages:
+          Three creature types were implemented in <code>creatures.py</code>:
         </p>
         <div class="factors">
           <div class="factor">
-            <h3>Critic Update</h3>
-            <p>The critic networks are trained to estimate the expected future return of state-action pairs. SAC uses twin critics to reduce overestimation bias. The target value is computed using target networks and the next-state policy distribution.</p>
+            <h3>Bilateral Swimmer</h3>
+            <p>8-segment chain with lateral undulation. Capsule segments connected by Z-axis revolute joints. Designed for snake/eel-like swimming motion using sinusoidal phase offsets.</p>
           </div>
           <div class="factor">
-            <h3>Actor Update</h3>
-            <p>The actor network is trained to choose actions that maximise expected return while also preserving entropy. This means the policy is optimised not only for reward, but also for controlled stochasticity.</p>
+            <h3>Radial Starfish</h3>
+            <p>Central sphere body with 5 arms arranged radially. Each arm is a capsule attached via a tangential revolute joint for pulsing motion. Asymmetric arm phasing creates directional movement.</p>
           </div>
           <div class="factor">
-            <h3>Target Network Update</h3>
-            <p>The target critics are not copied abruptly. They are updated gradually through soft updates, which improves numerical stability and prevents oscillation.</p>
+            <h3>Asymmetric Tumbler</h3>
+            <p>Central body with 4 limbs at non-uniform angular offsets. Mixed Z-axis rotation with tangential components to produce chaotic tumbling rather than walking.</p>
+          </div>
+        </div>
+
+        <h3 class="section__subtitle">2.2 The Controller</h3>
+        <p class="section__body">
+          An oscillator-based controller (<code>controllers.py</code>) drove each joint with sinusoidal position or velocity targets. Parameters like amplitude, frequency, phase stride, and bias could be tuned per-creature. This gave a crude approximation of locomotion without full RL — useful for early prototyping.
+        </p>
+
+        <h3 class="section__subtitle">2.3 PPO Training Attempt</h3>
+        <p class="section__body">
+          The initial RL approach used PPO via Stable-Baselines3 on these custom PyBullet environments. Training was slow. Each rollout required stepping through PyBullet physics on CPU, and PPO's on-policy updates discarded data after one pass. The result: marginal learning even after 250K timesteps, with slow iteration cycles that made debugging difficult.
+        </p>
+        <p class="section__body">
+          A secondary path explored GLB-to-creature conversion via <code>octo_from_glb.py</code> and <code>glb_topology.py</code>, which inferred radial topology from 3D meshes — an attempt to bridge Blender design directly into simulation.
+        </p>
+      </div>
+    </section>
+
+    <section id="pivot" class="section">
+      <div class="container">
+        <h2 class="section__num">3. The Pivot</h2>
+        <p class="section__body">
+          The original approach had three hard problems:
+        </p>
+        <div class="factors">
+          <div class="factor">
+            <h3>PPO was too slow</h3>
+            <p>On-policy meant every gradient update consumed a full rollout. Sample efficiency was poor. With custom PyBullet environments running on CPU, a single training run to 250K timesteps took hours with marginal policy improvement.</p>
+          </div>
+          <div class="factor">
+            <h3>PyBullet custom envs were fragile</h3>
+            <p>Each custom creature required manual joint limit tuning, collision shape calibration, and reward function design. Debugging physics issues (penetration, instability, NaN velocities) consumed more time than training.</p>
+          </div>
+          <div class="factor">
+            <h3>GPU underutilization</h3>
+            <p>PPO's collect-once, update-once cycle couldn't keep an NVIDIA GPU saturated. Most of the training time was spent waiting for CPU-bound physics rollouts rather than GPU-accelerated gradient steps.</p>
           </div>
         </div>
         <p class="section__body">
-          This cycle repeats throughout training. Over time, the policy becomes better aligned with the reward structure of the environment.
+          The decision was made to move off custom PyBullet creatures and onto Gymnasium's standard MuJoCo environments, and to switch from PPO to SAC for its off-policy efficiency and GPU-friendly training loop. This meant losing the custom creature zoo but gaining the ability to train at scale.
+        </p>
+      </div>
+    </section>
+
+    <section id="phase2" class="section">
+      <div class="container">
+        <h2 class="section__num">4. Phase 2: SAC Humanoid</h2>
+        <p class="section__body">
+          With the pipeline moved to Gymnasium + MuJoCo + SAC, the training setup stabilised significantly. The Humanoid-v4 environment provided a 17-degree-of-freedom continuous control task with built-in physics, termination conditions, and reward structure — none of which needed to be written or debugged.
         </p>
 
-        <h3 class="section__subtitle">2.6 Meaning of 400,000 Timesteps</h3>
+        <h3 class="section__subtitle">4.1 Reinforcement Learning Framework</h3>
         <p class="section__body">
-          The expression "400,000 Timesteps" refers to the total number of environment interaction steps used during training. It is therefore a description of the training horizon. In methodological terms, it marks the scale of exposure the agent has had to the task.
+          The model is trained within a reinforcement learning setting in which an agent interacts with an environment over repeated cycles. At each timestep, the agent receives an observation, selects an action, receives a reward, and transitions to a new state. Stable-Baselines3 provides the implementation infrastructure; SAC provides the learning logic.
+        </p>
+
+        <h3 class="section__subtitle">4.2 Soft Actor-Critic</h3>
+        <p class="section__body">
+          SAC is an off-policy algorithm designed for continuous action spaces. It stores transitions in a replay buffer and reuses them across multiple gradient updates — this is the primary source of its sample efficiency advantage over PPO.
         </p>
         <p class="section__body">
-          This number functions as a reporting condition in three ways:
+          The SAC framework consists of three components:
         </p>
         <ul class="section__list">
-          <li>It indicates the quantity of collected experience.</li>
-          <li>It identifies a checkpoint in the training trajectory.</li>
-          <li>It allows comparison with earlier or later runs.</li>
+          <li><strong>Actor network</strong> — learns a stochastic policy mapping observations to action distributions.</li>
+          <li><strong>Twin critic networks</strong> — estimate expected return while mitigating Q-value overestimation bias.</li>
+          <li><strong>Target critic networks</strong> — stabilise learning via soft Polyak updates (&tau; = 0.005).</li>
         </ul>
         <p class="section__body">
-          A video titled with a specific timestep value shows the behaviour of the agent after that amount of training. It is a snapshot of the policy at that point in learning.
+          An entropy regularisation term keeps the policy exploratory during training. Rather than collapsing to deterministic behaviour early, the agent continues to sample from a distribution over actions. This is critical in high-dimensional continuous control where useful behaviour emerges gradually.
         </p>
 
-        <h3 class="section__subtitle">2.7 Implementation Procedure</h3>
+        <h3 class="section__subtitle">4.3 Training Loop</h3>
         <p class="section__body">
-          A standard implementation procedure is as follows:
-        </p>
-        <ol class="section__list section__list--ordered">
-          <li>Import the environment through Gymnasium.</li>
-          <li>Instantiate the SAC model using SB3.</li>
-          <li>Set the policy architecture, logging parameters, and device configuration.</li>
-          <li>Train the model for a defined number of timesteps.</li>
-          <li>Save checkpoints during training.</li>
-          <li>Reload the trained model for evaluation or rendering.</li>
-          <li>Assess behaviour qualitatively through rollout videos and quantitatively through episode rewards.</li>
-        </ol>
-        <p class="section__body">
-          In code, this appears as:
-        </p>
-        <pre class="code-block">model = SAC("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=400_000)
-model.save("sac_model")</pre>
-        <p class="section__body">
-          This sequence operationalises the methodology. The title in question is effectively the caption for the result of this process.
-        </p>
-
-        <h3 class="section__subtitle">2.8 Evaluation and Interpretation</h3>
-        <p class="section__body">
-          After training, the learned policy is evaluated by running the model in the environment without further optimisation. This stage may include visual rendering, reward logging, checkpoint comparison, and analysis of behavioural consistency.
+          Each timestep follows: environment provides observation &rarr; actor selects action &rarr; environment steps &rarr; reward returned &rarr; transition stored in replay buffer. After enough transitions are collected, gradient updates begin. The critic is trained to minimise Bellman error against target values. The actor is trained to maximise expected return plus entropy. Target critics are soft-updated.
         </p>
         <p class="section__body">
-          The timestep value alone does not report evaluation metrics. It does not reveal whether the agent performed well, whether the reward converged, or whether the learned behaviour generalized robustly. It only identifies the library, the algorithm, and the total number of interaction steps. Methodologically, this means the timestep label should be interpreted as a training descriptor, not a full performance claim.
+          Training configuration:
         </p>
-
-        <h3 class="section__subtitle">2.9 Rationale for This Setup</h3>
-        <p class="section__body">
-          This methodology is appropriate when the task requires:
-        </p>
-        <ul class="section__list">
-          <li>continuous motor output</li>
-          <li>iterative trial-and-error learning</li>
-          <li>stable training over long horizons</li>
-          <li>reuse of past experience</li>
-          <li>exploration that remains active during optimisation</li>
-        </ul>
-        <p class="section__body">
-          SAC is well suited to these requirements because it balances reward maximisation with entropy regularisation, while SB3 offers a consistent and reproducible implementation environment.
-        </p>
-
-        <h3 class="section__subtitle">2.10 Training Configuration</h3>
         <table class="config-table">
           <thead>
             <tr><th>Parameter</th><th>Value</th></tr>
@@ -224,15 +178,22 @@ model.save("sac_model")</pre>
             <tr><td>Render Resolution</td><td>1920 &times; 1080 @ 30 fps</td></tr>
           </tbody>
         </table>
+
+        <h3 class="section__subtitle">4.4 Implementation</h3>
+        <p class="section__body">
+          The core training loop is in <code>train_sac.py</code>. Checkpoints are saved every 25K steps and later loaded by <code>render_checkpoints.py</code> which runs 1000 environment steps and writes a 1080p MP4. 69 checkpoints were saved across the 800K run.
+        </p>
+        <div class="code-block">model = SAC("MlpPolicy", env, verbose=1)
+model.learn(total_timesteps=400_000)
+model.save("sac_model")</div>
       </div>
     </section>
 
     <section id="results" class="section">
       <div class="container">
-        <h2 class="section__num">3. Results</h2>
+        <h2 class="section__num">5. Results</h2>
         <p class="section__body">
-          Four checkpoints were rendered at 1920 × 1080, 1000 frames each (~33 seconds at 30 fps). 
-          The videos are best viewed in sequence to observe the progressive improvement in gait quality.
+          Four checkpoints were rendered at 1920 &times; 1080, 1000 frames each (~33 seconds at 30 fps). The progression shows a clear trajectory from uncoordinated joint movement to stable walking.
         </p>
 
         <figure class="figure">
@@ -277,8 +238,7 @@ model.save("sac_model")</pre>
 
         <h3 class="section__subtitle">Comparative View</h3>
         <p class="section__body">
-          The following side-by-side view highlights the gap between the earliest and latest checkpoints.
-          Use the "Play Both" button to start synchronised playback.
+          Side-by-side playback of the earliest and latest checkpoints. Use the "Play Both" button for synchronised comparison.
         </p>
 
         <div class="compare">
@@ -286,7 +246,7 @@ model.save("sac_model")</pre>
             <figure class="compare__figure">
               <figcaption class="figure__caption">
                 <span class="figure__label">Figure 5a.</span>
-                200K timesteps — early, unstable gait
+                200K timesteps
               </figcaption>
               <video id="vid-early" controls preload="metadata" muted>
                 <source src="video/humanoid_200k.mp4" type="video/mp4" />
@@ -295,7 +255,7 @@ model.save("sac_model")</pre>
             <figure class="compare__figure">
               <figcaption class="figure__caption">
                 <span class="figure__label">Figure 5b.</span>
-                800K timesteps — final, stable locomotion
+                800K timesteps
               </figcaption>
               <video id="vid-late" controls preload="metadata" muted>
                 <source src="video/humanoid_800k.mp4" type="video/mp4" />
@@ -308,66 +268,45 @@ model.save("sac_model")</pre>
             <button class="btn btn--outline" id="btn-sync-reset">&#8634; Reset</button>
           </div>
         </div>
-
       </div>
     </section>
 
-    <section id="discussion" class="section">
+    <section id="learnings" class="section">
       <div class="container">
-        <h2 class="section__num">4. Discussion</h2>
-        <p class="section__body">
-          The progression from Figure 1 to Figure 4 demonstrates a clear trajectory of improvement. 
-          At 200K timesteps, the agent exhibits uncoordinated joint movements and frequent loss of balance. 
-          By 400K, basic stability emerges — the agent can maintain an upright posture for sustained periods. 
-          At 600K, a walking gait pattern becomes recognisable, and by 800K, locomotion is consistent 
-          and energy-efficient.
-        </p>
-        <p class="section__body">
-          Several factors contributed to this outcome. The off-policy nature of SAC allowed efficient reuse 
-          of experience, which is particularly valuable in high-dimensional continuous control tasks. 
-          The entropy regularisation term ensured the agent continued exploring alternative gait strategies 
-          rather than converging to a suboptimal pattern early in training. The replay buffer size of 1M 
-          transitions provided sufficient diversity in the training distribution.
-        </p>
-        <p class="section__body">
-          The transition from PPO to SAC proved critical. PPO's on-policy constraint limited the effective 
-          use of GPU parallelism, and its fixed exploration schedule was insufficient for the 17-DoF 
-          Humanoid action space. SAC's twin-Q critics addressed the value overestimation bias that would 
-          have caused PPO to overestimate the return of untested state-action pairs.
-        </p>
-      </div>
-    </section>
-
-    <section id="supplementary" class="section">
-      <div class="container">
-        <h2 class="section__num">5. Supplementary</h2>
-        <p class="section__body">
-          Additional recordings from PPO training runs and earlier SAC renders are listed below. 
-          These are not part of the main progression analysis but provide context for the development process.
-        </p>
-
-        <div class="supp-list">
-          <figure class="supp-figure">
-            <figcaption class="figure__caption"><span class="figure__label">S1.</span> Humanoid-v5 PPO 250K</figcaption>
-            <video controls preload="metadata"><source src="video/humanoid_v5_step_000250000.mp4" type="video/mp4" /></video>
-          </figure>
-          <figure class="supp-figure">
-            <figcaption class="figure__caption"><span class="figure__label">S2.</span> HumanoidStandup-v5 PPO 200K</figcaption>
-            <video controls preload="metadata"><source src="video/humanoidstandup_v5_step_000200000.mp4" type="video/mp4" /></video>
-          </figure>
-          <figure class="supp-figure">
-            <figcaption class="figure__caption"><span class="figure__label">S3.</span> Walker2d-v5 PPO 250K</figcaption>
-            <video controls preload="metadata"><source src="video/walker2d_v5_step_000250000.mp4" type="video/mp4" /></video>
-          </figure>
-          <figure class="supp-figure">
-            <figcaption class="figure__caption"><span class="figure__label">S4.</span> SAC Humanoid Walk (early render)</figcaption>
-            <video controls preload="metadata"><source src="video/humanoid_walk.mp4" type="video/mp4" /></video>
-          </figure>
-          <figure class="supp-figure">
-            <figcaption class="figure__caption"><span class="figure__label">S5.</span> SAC Humanoid 1-Minute Render</figcaption>
-            <video controls preload="metadata"><source src="video/humanoid_1min.mp4" type="video/mp4" /></video>
-          </figure>
+        <h2 class="section__num">6. Key Learnings</h2>
+        <div class="factors">
+          <div class="factor">
+            <h3>Off-policy &gt; on-policy for GPU-accelerated continuous control</h3>
+            <p>SAC's replay buffer made effective use of GPU parallelism. PPO spent most of its time collecting rollouts on CPU. For this hardware setup, the switch was worth roughly 3-4x in effective throughput.</p>
+          </div>
+          <div class="factor">
+            <h3>Pre-built environments accelerate iteration</h3>
+            <p>Custom PyBullet creatures required constant debugging of physics parameters, collision geometry, and reward shaping. Gymnasium MuJoCo environments removed an entire class of failure modes from the critical path.</p>
+          </div>
+          <div class="factor">
+            <h3>800K timesteps is a starting point, not an endpoint</h3>
+            <p>The agent walks at 800K but still shows room for improvement — occasional stumbles, inefficient energy use, and sensitivity to terrain variation. Longer training (2M+ timesteps) would likely produce more robust behaviour.</p>
+          </div>
+          <div class="factor">
+            <h3>The custom creature questions remain open</h3>
+            <p>The original vision of a Three.js creature zoo was deprioritised but not invalidated. The SAC training pipeline now exists as a reliable foundation. Revisiting custom MuJoCo XML creatures with SAC training is the natural next step.</p>
+          </div>
         </div>
+      </div>
+    </section>
+
+    <section id="next" class="section">
+      <div class="container">
+        <h2 class="section__num">7. Next Steps</h2>
+        <ul class="section__list">
+          <li>Revisit custom MuJoCo XML creatures (swimmer, starfish, tumbler) using the SAC training pipeline instead of PPO</li>
+          <li>Build a Three.js or WebGL viewer that loads exported trajectory JSON from any trained creature</li>
+          <li>Train to 2M+ timesteps to push gait quality further</li>
+          <li>Explore reward shaping for specific movement aesthetics (smoothness, symmetry, energy efficiency)</li>
+        </ul>
+        <p class="section__body" style="margin-top:1.5rem;">
+          The source code and all training scripts are in the <a href="https://github.com/Omarindigo/AESTHETIC-CREATURES">main repository</a>.
+        </p>
       </div>
     </section>
 
@@ -375,7 +314,7 @@ model.save("sac_model")</pre>
 
   <footer class="report-footer">
     <div class="container">
-      <p>Aesthetic Creatures — Simulation Report</p>
+      <p>Simulation R&D — Reinforcement Learning for Continuous Control</p>
       <p class="report-footer__stack">MuJoCo &middot; SAC &middot; PyTorch &middot; NVIDIA CUDA</p>
       <p class="report-footer__link"><a href="https://github.com/Omarindigo/AESTHETIC-CREATURES">Source Repository</a></p>
     </div>
