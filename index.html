@@ -3,290 +3,313 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Aesthetic Creatures — MuJoCo Humanoid SAC training progression from 200K to 800K timesteps." />
+  <meta name="description" content="Aesthetic Creatures — MuJoCo Humanoid SAC training progression report from 200K to 800K timesteps." />
   <title>Aesthetic Creatures — Simulation Report</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
 
-  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="report-header">
+    <div class="container">
+      <p class="report-header__label">Simulation Report &mdash; May 2026</p>
+      <h1 class="report-header__title">Aesthetic Creatures</h1>
+      <p class="report-header__subtitle">MuJoCo Humanoid Locomotion &middot; SAC Training &middot; 200K → 800K Timesteps</p>
+      <p class="report-header__meta">
+        <span>Algorithm: Soft Actor-Critic (SAC)</span>
+        <span>Environment: Humanoid-v4</span>
+        <span>Hardware: NVIDIA GPU (CUDA)</span>
+      </p>
+    </div>
+  </header>
 
-  <nav class="nav" role="navigation" aria-label="Main navigation">
-    <div class="nav__inner">
-      <span class="nav__logo">AC</span>
-      <ul class="nav__links">
-        <li><a href="#methodology">Methodology</a></li>
-        <li><a href="#progression">Progression</a></li>
-        <li><a href="#comparison">Comparison</a></li>
-        <li><a href="#supplementary">Supplementary</a></li>
+  <nav class="toc" aria-label="Table of contents">
+    <div class="container">
+      <ul>
+        <li><a href="#abstract">1. Abstract</a></li>
+        <li><a href="#methodology">2. Methodology</a></li>
+        <li><a href="#results">3. Results</a></li>
+        <li><a href="#discussion">4. Discussion</a></li>
+        <li><a href="#supplementary">5. Supplementary</a></li>
       </ul>
     </div>
   </nav>
 
-  <header class="hero" id="main">
-    <div class="hero__bg"></div>
-    <div class="hero__content">
-      <span class="hero__tag">Simulation Report</span>
-      <h1 class="hero__title">Aesthetic Creatures</h1>
-      <p class="hero__subtitle">MuJoCo Humanoid &middot; SAC Training &middot; 200K → 800K Timesteps</p>
+  <main class="report-body">
 
-      <div class="stats" role="group" aria-label="Training statistics">
-        <div class="stat">
-          <span class="stat__num" data-count="800000">0</span>
-          <span class="stat__unit">timesteps</span>
-          <span class="stat__label">Max Training</span>
-        </div>
-        <div class="stat">
-          <span class="stat__num" data-count="69">0</span>
-          <span class="stat__unit">checkpoints</span>
-          <span class="stat__label">Saved Models</span>
-        </div>
-        <div class="stat">
-          <span class="stat__num" data-count="4">0</span>
-          <span class="stat__unit">videos</span>
-          <span class="stat__label">Featured Progression</span>
-        </div>
-        <div class="stat">
-          <span class="stat__num" data-count="1920">0</span>
-          <span class="stat__unit">&times;1080</span>
-          <span class="stat__label">Resolution</span>
-        </div>
+    <section id="abstract" class="section">
+      <div class="container">
+        <h2 class="section__num">1. Abstract</h2>
+        <p class="section__body">
+          This report documents the training of a humanoid locomotion agent using Soft Actor-Critic (SAC) 
+          on the MuJoCo physics engine via Gymnasium's Humanoid-v4 environment. The project began with 
+          Proximal Policy Optimization (PPO) but transitioned to SAC due to its superior sample efficiency, 
+          GPU utilization, and exploration characteristics. A total of <strong>800,000 timesteps</strong> of 
+          training were completed, with checkpoints saved every 25,000 steps. Four key checkpoints 
+          (200K, 400K, 600K, 800K) were rendered at <strong>1920 × 1080</strong> resolution to visualise 
+          the progression of gait quality — from early-stage stumbling to stable, fluid locomotion at the 
+          final checkpoint. This page serves as both a report and a visual record of that progression.
+        </p>
       </div>
+    </section>
 
-      <div class="hero__scroll" aria-hidden="true">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
-      </div>
-    </div>
-  </header>
+    <section id="methodology" class="section">
+      <div class="container">
+        <h2 class="section__num">2. Methodology</h2>
 
-  <main class="main">
-
-    <section class="section reveal" id="methodology">
-      <div class="section__inner">
-        <h2 class="section__title">Methodology</h2>
-
-        <div class="tabs" role="tablist" aria-label="Methodology sections">
-          <button class="tab" role="tab" aria-selected="true" aria-controls="panel-why-sac" id="tab-why-sac" tabindex="0">Why SAC</button>
-          <button class="tab" role="tab" aria-selected="false" aria-controls="panel-architecture" id="tab-architecture" tabindex="-1">Architecture</button>
-          <button class="tab" role="tab" aria-selected="false" aria-controls="panel-config" id="tab-config" tabindex="-1">Config</button>
-          <button class="tab" role="tab" aria-selected="false" aria-controls="panel-code" id="tab-code" tabindex="-1">Code</button>
+        <div class="tabs" role="tablist" aria-label="Methodology subsections">
+          <button class="tab" role="tab" aria-selected="true" aria-controls="panel-why" id="tab-why" tabindex="0">2.1 Why SAC</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="panel-arch" id="tab-arch" tabindex="-1">2.2 Architecture</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="panel-config" id="tab-config" tabindex="-1">2.3 Configuration</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="panel-code" id="tab-code" tabindex="-1">2.4 Code</button>
           <span class="tabs__indicator" aria-hidden="true"></span>
         </div>
 
         <div class="panels">
 
-          <div class="panel panel--active" role="tabpanel" id="panel-why-sac" aria-labelledby="tab-why-sac">
-            <p>The project began with PPO (Proximal Policy Optimization) but migrated to SAC (Soft Actor-Critic) for the final pipeline. The transition was driven by five key factors:</p>
-            <div class="grid-2 reveal-children">
-              <div class="card"><h3>Sample Efficiency</h3><p>SAC is off-policy. It stores every experience in a 1M-capacity replay buffer and reuses them for multiple gradient updates. PPO discards data after one update pass. SAC learns to walk in far fewer environment steps.</p></div>
-              <div class="card"><h3>GPU Utilization</h3><p>SAC repeatedly samples training batches from the replay buffer and performs dense tensor ops. This keeps an NVIDIA GPU saturated. PPO's collect-once, update-once design is more CPU-bound and underutilizes GPU throughput.</p></div>
-              <div class="card"><h3>Exploration</h3><p>SAC incorporates entropy maximization directly into the reward function. The agent is rewarded for maintaining uncertainty, forcing wide exploration. PPO relies on fixed noise schedules and converges to premature local optima.</p></div>
-              <div class="card"><h3>Continuous Control</h3><p>SAC's twin-Q architecture mitigates value overestimation bias in continuous action spaces. This is critical for Humanoid's 17-DoF action space. PPO's clipped surrogate is simpler but less effective for high-DoF locomotion.</p></div>
-              <div class="card card--wide"><h3>Empirical Results</h3><p>PPO Humanoid-v5 plateaued at 250K timesteps with marginal walking quality. SAC Humanoid-v4 scaled cleanly to 800K timesteps with visibly more fluid gait at every checkpoint — from stumbling (200K) to stable walking (800K).</p></div>
+          <div class="panel panel--active" role="tabpanel" id="panel-why" aria-labelledby="tab-why">
+            <p class="section__body">The project began with PPO but migrated to SAC. The transition was driven by five factors:</p>
+            <div class="factors">
+              <div class="factor">
+                <h3>Sample Efficiency</h3>
+                <p>SAC is off-policy. It stores every experience in a 1M-capacity replay buffer and reuses them for multiple gradient updates. PPO discards data after one update pass. Result: SAC learns to walk in far fewer environment steps with the same GPU budget.</p>
+              </div>
+              <div class="factor">
+                <h3>GPU Utilization</h3>
+                <p>SAC repeatedly samples training batches from the replay buffer and performs dense tensor ops, keeping the GPU saturated. PPO's collect-once, update-once cycle is more CPU-bound and underutilises GPU throughput.</p>
+              </div>
+              <div class="factor">
+                <h3>Exploration</h3>
+                <p>SAC incorporates entropy maximisation directly into its objective function. The agent is rewarded for maintaining uncertainty, driving wide exploration of the action space. PPO relies on fixed noise schedules that can converge to local optima prematurely.</p>
+              </div>
+              <div class="factor">
+                <h3>Continuous Control</h3>
+                <p>SAC's twin-Q architecture mitigates value overestimation bias, a known failure mode in continuous control. This is critical for Humanoid's 17-degree-of-freedom action space. PPO's clipped surrogate objective is simpler but empirically less effective for high-DoF locomotion.</p>
+              </div>
+              <div class="factor">
+                <h3>Empirical Results</h3>
+                <p>PPO Humanoid-v5 plateaued at 250K timesteps with marginal walking quality. SAC Humanoid-v4 scaled to 800K with measurably more fluid gait at every checkpoint — from rough stumbling at 200K to stable walking at 800K.</p>
+              </div>
             </div>
           </div>
 
-          <div class="panel" role="tabpanel" id="panel-architecture" aria-labelledby="tab-architecture" hidden>
-            <p>SAC is an off-policy actor-critic algorithm with three key innovations:</p>
-            <div class="grid-2 reveal-children">
-              <div class="card"><h3>Actor (Policy Network)</h3><p>Maps observations to action distributions. Updated to maximize both expected return and entropy, balancing exploitation with exploration.</p></div>
-              <div class="card"><h3>Twin Critics (Q&#8321;, Q&#8322;)</h3><p>Two Q-networks reduce overestimation bias by taking the minimum of their outputs. Target networks use soft Polyak averaging (&tau; = 0.005) for stable learning.</p></div>
-              <div class="card"><h3>Entropy Regularization</h3><p>Temperature &alpha; is learned automatically. High &alpha; drives exploration early in training; lower &alpha; narrows the policy as skill improves.</p></div>
-              <div class="card"><h3>Replay Buffer</h3><p>FIFO buffer of 1,000,000 transitions (s, a, r, s&prime;). Batches of 256 are sampled uniformly for each gradient step.</p></div>
+          <div class="panel" role="tabpanel" id="panel-arch" aria-labelledby="tab-arch" hidden>
+            <p class="section__body">SAC is an off-policy actor-critic algorithm with three architectural innovations:</p>
+            <div class="factors">
+              <div class="factor">
+                <h3>Actor (Policy Network)</h3>
+                <p>Maps observations to action distributions. Updated to maximise both expected return and entropy, balancing exploitation with exploration.</p>
+              </div>
+              <div class="factor">
+                <h3>Twin Critics (Q₁, Q₂)</h3>
+                <p>Two Q-networks reduce overestimation bias by taking the minimum of their outputs. Target networks use soft Polyak averaging (&tau; = 0.005) for stable learning.</p>
+              </div>
+              <div class="factor">
+                <h3>Entropy Regularisation</h3>
+                <p>Temperature &alpha; is learned automatically. High &alpha; drives exploration early; lower &alpha; narrows the policy as gait skill improves.</p>
+              </div>
+              <div class="factor">
+                <h3>Replay Buffer</h3>
+                <p>FIFO buffer of 1,000,000 transitions (s, a, r, s&prime;). Batches of 256 are sampled uniformly for each gradient step. Enables repeated reuse of past experience.</p>
+              </div>
             </div>
           </div>
 
           <div class="panel" role="tabpanel" id="panel-config" aria-labelledby="tab-config" hidden>
-            <div class="table-wrap">
-              <table class="config-table" role="table" aria-label="Training configuration">
-                <thead>
-                  <tr><th scope="col">Parameter</th><th scope="col">Value</th></tr>
-                </thead>
-                <tbody>
-                  <tr><td>Environment</td><td>Humanoid-v4 (MuJoCo)</td></tr>
-                  <tr><td>Algorithm</td><td>SAC (Soft Actor-Critic)</td></tr>
-                  <tr><td>Total Timesteps</td><td>800,000</td></tr>
-                  <tr><td>Save Interval</td><td>every 25,000 steps</td></tr>
-                  <tr><td>Batch Size</td><td>256</td></tr>
-                  <tr><td>Learning Rate</td><td>3 &times; 10<sup>-4</sup></td></tr>
-                  <tr><td>Replay Buffer</td><td>1,000,000</td></tr>
-                  <tr><td>Discount (&gamma;)</td><td>0.99</td></tr>
-                  <tr><td>Soft Update (&tau;)</td><td>0.005</td></tr>
-                  <tr><td>Network</td><td>MLP (256, 256)</td></tr>
-                  <tr><td>Hardware</td><td>NVIDIA GPU (CUDA)</td></tr>
-                  <tr><td>Render</td><td>1920 &times; 1080 @ 30 fps</td></tr>
-                </tbody>
-              </table>
-            </div>
+            <table class="config-table">
+              <thead>
+                <tr><th>Parameter</th><th>Value</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Environment</td><td>Humanoid-v4 (MuJoCo)</td></tr>
+                <tr><td>Algorithm</td><td>SAC (Soft Actor-Critic)</td></tr>
+                <tr><td>Total Timesteps</td><td>800,000</td></tr>
+                <tr><td>Save Interval</td><td>Every 25,000 steps</td></tr>
+                <tr><td>Batch Size</td><td>256</td></tr>
+                <tr><td>Learning Rate</td><td>3 × 10<sup>−4</sup></td></tr>
+                <tr><td>Replay Buffer Capacity</td><td>1,000,000</td></tr>
+                <tr><td>Discount (&gamma;)</td><td>0.99</td></tr>
+                <tr><td>Soft Update (&tau;)</td><td>0.005</td></tr>
+                <tr><td>Network Architecture</td><td>MLP (256, 256)</td></tr>
+                <tr><td>Hardware</td><td>NVIDIA GPU (CUDA)</td></tr>
+                <tr><td>Render Resolution</td><td>1920 × 1080 @ 30 fps</td></tr>
+              </tbody>
+            </table>
           </div>
 
           <div class="panel" role="tabpanel" id="panel-code" aria-labelledby="tab-code" hidden>
-            <p>Key files in the project:</p>
-            <div class="grid-2 reveal-children">
-              <div class="card"><h3><code>train_sac.py</code></h3><p>Main SAC training loop. Creates environment, initialises model, trains in 25K-step chunks with periodic saves.</p></div>
-              <div class="card"><h3><code>render_checkpoints.py</code></h3><p>Loads a trained SAC checkpoint, runs 1000 environment steps, outputs 1080p MP4.</p></div>
-              <div class="card"><h3><code>train_interactive.py</code></h3><p>Interactive training with pause/resume/restart controls via keyboard input, plus periodic evaluation and preview rendering.</p></div>
-              <div class="card"><h3><code>aesthetic_creatures/</code></h3><p>Modular v3.0 pipeline: envs (50+ specs), models (PPO builder), recording (trajectory capture), rendering (art generation + video export), scripts (train + replay CLI).</p></div>
-            </div>
+            <p class="section__body">The training code is structured across several scripts in the <code>src/</code> directory:</p>
+            <table class="config-table">
+              <thead>
+                <tr><th>File</th><th>Purpose</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>train_sac.py</code></td><td>Main SAC training loop. Creates env, initialises model, trains in 25K-step chunks with periodic saves.</td></tr>
+                <tr><td><code>render_checkpoints.py</code></td><td>Loads a trained checkpoint, runs 1000 env steps, outputs 1080p MP4.</td></tr>
+                <tr><td><code>train_interactive.py</code></td><td>Interactive training with keyboard controls (pause/resume/restart), periodic evaluation, and preview renders.</td></tr>
+                <tr><td><code>train_continue.py</code></td><td>Resumes training from a saved SAC checkpoint.</td></tr>
+                <tr><td><code>aesthetic_creatures/</code></td><td>Modular v3.0 pipeline: env specs, PPO/art recording, rendering, and CLI scripts.</td></tr>
+              </tbody>
+            </table>
           </div>
 
         </div>
       </div>
     </section>
 
-    <section class="section section--dark reveal" id="progression">
-      <div class="section__inner">
-        <h2 class="section__title">Training Progression</h2>
-        <p class="section__desc">Four checkpoints from the SAC training run. Each video is 1000 frames (&asymp;33 s) at 1920&times;1080. Watch the gait stabilise from early stumbling to fluid locomotion.</p>
+    <section id="results" class="section">
+      <div class="container">
+        <h2 class="section__num">3. Results</h2>
+        <p class="section__body">
+          Four checkpoints were rendered at 1920 × 1080, 1000 frames each (~33 seconds at 30 fps). 
+          The videos are best viewed in sequence to observe the progressive improvement in gait quality.
+        </p>
 
-        <div class="video-grid reveal-children">
-          <div class="video-card">
-            <div class="video-card__player">
-              <video controls preload="metadata" poster="">
-                <source src="video/humanoid_200k.mp4" type="video/mp4" />
-              </video>
-            </div>
-            <div class="video-card__info">
-              <span class="badge">200K</span>
-              <p>Early gait — rough, unstable, limited coordination. The agent is still learning basic joint synchronisation.</p>
-            </div>
-          </div>
+        <figure class="figure">
+          <figcaption class="figure__caption">
+            <span class="figure__label">Figure 1.</span>
+            <strong>200K timesteps.</strong> Early gait — rough, unstable, limited coordination. The agent is still learning basic joint synchronisation.
+          </figcaption>
+          <video controls preload="metadata">
+            <source src="video/humanoid_200k.mp4" type="video/mp4" />
+          </video>
+        </figure>
 
-          <div class="video-card">
-            <div class="video-card__player">
-              <video controls preload="metadata" poster="">
-                <source src="video/humanoid_400k.mp4" type="video/mp4" />
-              </video>
-            </div>
-            <div class="video-card__info">
-              <span class="badge">400K</span>
-              <p>Mid-training — improved balance, more fluid motion, fewer falls. The policy is converging on a stable gait pattern.</p>
-            </div>
-          </div>
+        <figure class="figure">
+          <figcaption class="figure__caption">
+            <span class="figure__label">Figure 2.</span>
+            <strong>400K timesteps.</strong> Mid-training — improved balance, more fluid motion, fewer falls. The policy is converging on a stable gait pattern.
+          </figcaption>
+          <video controls preload="metadata">
+            <source src="video/humanoid_400k.mp4" type="video/mp4" />
+          </video>
+        </figure>
 
-          <div class="video-card">
-            <div class="video-card__player">
-              <video controls preload="metadata" poster="">
-                <source src="video/humanoid_600k.mp4" type="video/mp4" />
-              </video>
-            </div>
-            <div class="video-card__info">
-              <span class="badge">600K</span>
-              <p>Late training — stable walking emerges. Smoother transitions between stride phases and better energy efficiency.</p>
-            </div>
-          </div>
+        <figure class="figure">
+          <figcaption class="figure__caption">
+            <span class="figure__label">Figure 3.</span>
+            <strong>600K timesteps.</strong> Late training — stable walking emerges. Smoother transitions between stride phases and better energy efficiency.
+          </figcaption>
+          <video controls preload="metadata">
+            <source src="video/humanoid_600k.mp4" type="video/mp4" />
+          </video>
+        </figure>
 
-          <div class="video-card">
-            <div class="video-card__player">
-              <video controls preload="metadata" poster="">
-                <source src="video/humanoid_800k.mp4" type="video/mp4" />
-              </video>
-            </div>
-            <div class="video-card__info">
-              <span class="badge">800K</span>
-              <p>Final checkpoint — the most refined locomotion. Consistent, balanced, and efficient walking gait.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+        <figure class="figure">
+          <figcaption class="figure__caption">
+            <span class="figure__label">Figure 4.</span>
+            <strong>800K timesteps (final).</strong> The most refined locomotion — consistent, balanced, and efficient walking gait.
+          </figcaption>
+          <video controls preload="metadata">
+            <source src="video/humanoid_800k.mp4" type="video/mp4" />
+          </video>
+        </figure>
 
-    <section class="section reveal" id="comparison">
-      <div class="section__inner">
-        <h2 class="section__title">Side-by-Side: 200K vs 800K</h2>
-        <p class="section__desc">Play both videos simultaneously to see the full gap between early and late training.</p>
+        <h3 class="section__subtitle">Comparative View</h3>
+        <p class="section__body">
+          The following side-by-side view highlights the gap between the earliest and latest checkpoints.
+          Use the "Play Both" button to start synchronised playback.
+        </p>
 
         <div class="compare">
-          <div class="compare__cols">
-            <div class="compare__col">
-              <span class="badge badge--red">200K Timesteps</span>
-              <div class="compare__player">
-                <video id="vid-early" controls preload="metadata" muted>
-                  <source src="video/humanoid_200k.mp4" type="video/mp4" />
-                </video>
-              </div>
-            </div>
-            <div class="compare__col">
-              <span class="badge badge--green">800K Timesteps</span>
-              <div class="compare__player">
-                <video id="vid-late" controls preload="metadata" muted>
-                  <source src="video/humanoid_800k.mp4" type="video/mp4" />
-                </video>
-              </div>
-            </div>
+          <div class="compare__pair">
+            <figure class="compare__figure">
+              <figcaption class="figure__caption">
+                <span class="figure__label">Figure 5a.</span>
+                200K timesteps — early, unstable gait
+              </figcaption>
+              <video id="vid-early" controls preload="metadata" muted>
+                <source src="video/humanoid_200k.mp4" type="video/mp4" />
+              </video>
+            </figure>
+            <figure class="compare__figure">
+              <figcaption class="figure__caption">
+                <span class="figure__label">Figure 5b.</span>
+                800K timesteps — final, stable locomotion
+              </figcaption>
+              <video id="vid-late" controls preload="metadata" muted>
+                <source src="video/humanoid_800k.mp4" type="video/mp4" />
+              </video>
+            </figure>
           </div>
           <div class="compare__controls">
-            <button class="btn" id="btn-sync-play" aria-label="Play both videos">&#9654; Play Both</button>
-            <button class="btn btn--outline" id="btn-sync-pause" aria-label="Pause both videos">&#9646;&#9646; Pause Both</button>
-            <button class="btn btn--outline" id="btn-sync-reset" aria-label="Reset both videos to start">&#8634; Reset</button>
+            <button class="btn" id="btn-sync-play">&#9654; Play Both</button>
+            <button class="btn btn--outline" id="btn-sync-pause">&#9646;&#9646; Pause Both</button>
+            <button class="btn btn--outline" id="btn-sync-reset">&#8634; Reset</button>
           </div>
         </div>
+
       </div>
     </section>
 
-    <section class="section section--dark reveal" id="supplementary">
-      <div class="section__inner">
-        <h2 class="section__title">Supplementary</h2>
-        <p class="section__desc">Additional recordings from PPO training runs and earlier SAC renders.</p>
+    <section id="discussion" class="section">
+      <div class="container">
+        <h2 class="section__num">4. Discussion</h2>
+        <p class="section__body">
+          The progression from Figure 1 to Figure 4 demonstrates a clear trajectory of improvement. 
+          At 200K timesteps, the agent exhibits uncoordinated joint movements and frequent loss of balance. 
+          By 400K, basic stability emerges — the agent can maintain an upright posture for sustained periods. 
+          At 600K, a walking gait pattern becomes recognisable, and by 800K, locomotion is consistent 
+          and energy-efficient.
+        </p>
+        <p class="section__body">
+          Several factors contributed to this outcome. The off-policy nature of SAC allowed efficient reuse 
+          of experience, which is particularly valuable in high-dimensional continuous control tasks. 
+          The entropy regularisation term ensured the agent continued exploring alternative gait strategies 
+          rather than converging to a suboptimal pattern early in training. The replay buffer size of 1M 
+          transitions provided sufficient diversity in the training distribution.
+        </p>
+        <p class="section__body">
+          The transition from PPO to SAC proved critical. PPO's on-policy constraint limited the effective 
+          use of GPU parallelism, and its fixed exploration schedule was insufficient for the 17-DoF 
+          Humanoid action space. SAC's twin-Q critics addressed the value overestimation bias that would 
+          have caused PPO to overestimate the return of untested state-action pairs.
+        </p>
+      </div>
+    </section>
 
-        <div class="supp-grid reveal-children">
-          <div class="supp-card">
-            <video controls preload="metadata">
-              <source src="video/humanoid_v5_step_000250000.mp4" type="video/mp4" />
-            </video>
-            <div class="supp-card__info">
-              <span class="badge badge--ppo">PPO</span> Humanoid-v5 250K
-            </div>
-          </div>
+    <section id="supplementary" class="section">
+      <div class="container">
+        <h2 class="section__num">5. Supplementary</h2>
+        <p class="section__body">
+          Additional recordings from PPO training runs and earlier SAC renders are listed below. 
+          These are not part of the main progression analysis but provide context for the development process.
+        </p>
 
-          <div class="supp-card">
-            <video controls preload="metadata">
-              <source src="video/humanoidstandup_v5_step_000200000.mp4" type="video/mp4" />
-            </video>
-            <div class="supp-card__info">
-              <span class="badge badge--ppo">PPO</span> Standup 200K
-            </div>
-          </div>
-
-          <div class="supp-card">
-            <video controls preload="metadata">
-              <source src="video/walker2d_v5_step_000250000.mp4" type="video/mp4" />
-            </video>
-            <div class="supp-card__info">
-              <span class="badge badge--ppo">PPO</span> Walker2d-v5 250K
-            </div>
-          </div>
-
-          <div class="supp-card">
-            <video controls preload="metadata">
-              <source src="video/humanoid_walk.mp4" type="video/mp4" />
-            </video>
-            <div class="supp-card__info">
-              <span class="badge badge--sac">SAC</span> Humanoid Walk
-            </div>
-          </div>
-
-          <div class="supp-card">
-            <video controls preload="metadata">
-              <source src="video/humanoid_1min.mp4" type="video/mp4" />
-            </video>
-            <div class="supp-card__info">
-              <span class="badge badge--sac">SAC</span> 1-Minute Render
-            </div>
-          </div>
+        <div class="supp-list">
+          <figure class="supp-figure">
+            <figcaption class="figure__caption"><span class="figure__label">S1.</span> Humanoid-v5 PPO 250K</figcaption>
+            <video controls preload="metadata"><source src="video/humanoid_v5_step_000250000.mp4" type="video/mp4" /></video>
+          </figure>
+          <figure class="supp-figure">
+            <figcaption class="figure__caption"><span class="figure__label">S2.</span> HumanoidStandup-v5 PPO 200K</figcaption>
+            <video controls preload="metadata"><source src="video/humanoidstandup_v5_step_000200000.mp4" type="video/mp4" /></video>
+          </figure>
+          <figure class="supp-figure">
+            <figcaption class="figure__caption"><span class="figure__label">S3.</span> Walker2d-v5 PPO 250K</figcaption>
+            <video controls preload="metadata"><source src="video/walker2d_v5_step_000250000.mp4" type="video/mp4" /></video>
+          </figure>
+          <figure class="supp-figure">
+            <figcaption class="figure__caption"><span class="figure__label">S4.</span> SAC Humanoid Walk (early render)</figcaption>
+            <video controls preload="metadata"><source src="video/humanoid_walk.mp4" type="video/mp4" /></video>
+          </figure>
+          <figure class="supp-figure">
+            <figcaption class="figure__caption"><span class="figure__label">S5.</span> SAC Humanoid 1-Minute Render</figcaption>
+            <video controls preload="metadata"><source src="video/humanoid_1min.mp4" type="video/mp4" /></video>
+          </figure>
         </div>
       </div>
     </section>
 
   </main>
 
-  <footer class="footer">
-    <div class="footer__inner">
-      <p>Aesthetic Creatures &mdash; Simulation Report</p>
-      <p class="footer__meta">MuJoCo &middot; SAC &middot; PyTorch &middot; NVIDIA CUDA</p>
+  <footer class="report-footer">
+    <div class="container">
+      <p>Aesthetic Creatures — Simulation Report</p>
+      <p class="report-footer__stack">MuJoCo &middot; SAC &middot; PyTorch &middot; NVIDIA CUDA</p>
+      <p class="report-footer__link"><a href="https://github.com/Omarindigo/AESTHETIC-CREATURES">Source Repository</a></p>
     </div>
   </footer>
 
