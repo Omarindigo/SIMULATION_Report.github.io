@@ -152,10 +152,38 @@ a:hover {
 
 .section__subtitle {
   font-family: 'IBM Plex Serif', serif;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--gray-700);
-  margin: 2rem 0 0.75rem;
+  margin: 1.75rem 0 0.6rem;
+}
+
+.section__list {
+  margin: 0.5rem 0 1rem 1.5rem;
+  font-size: 0.92rem;
+  color: var(--gray-600);
+  line-height: 1.8;
+}
+
+.section__list--ordered {
+  list-style: decimal;
+}
+
+.section__list li {
+  margin-bottom: 0.1rem;
+}
+
+.code-block {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  font-family: 'IBM Plex Mono', 'SF Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--gray-600);
+  overflow-x: auto;
+  line-height: 1.6;
+  margin: 0.75rem 0 1rem;
 }
 
 .section__body {
@@ -165,72 +193,7 @@ a:hover {
   max-width: 680px;
 }
 
-/* ===== Tabs ===== */
-.tabs {
-  display: flex;
-  gap: 0;
-  position: relative;
-  margin-bottom: 1.5rem;
-  border-bottom: 2px solid var(--gray-200);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.tab {
-  flex: none;
-  padding: 0.7rem 1.25rem;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: var(--gray-400);
-  cursor: pointer;
-  position: relative;
-  z-index: 1;
-  transition: color 0.15s;
-  white-space: nowrap;
-}
-
-.tab:hover {
-  color: var(--blue-500);
-}
-
-.tab[aria-selected="true"] {
-  color: var(--blue-500);
-  font-weight: 600;
-}
-
-.tab:focus-visible {
-  outline: 2px solid var(--blue-400);
-  outline-offset: -2px;
-  border-radius: 4px;
-}
-
-.tabs__indicator {
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  height: 2px;
-  background: var(--blue-500);
-  transition: transform 0.2s, width 0.2s;
-  z-index: 2;
-}
-
-/* Panels */
-.panel {
-  display: none;
-}
-
-.panel--active {
-  display: block;
-}
-
-.panel p.section__body {
-  margin-bottom: 1.25rem;
-}
-
-/* ===== Factors (cards as prose blocks) ===== */
+/* ===== Factors (prose blocks) ===== */
 .factors {
   display: flex;
   flex-direction: column;

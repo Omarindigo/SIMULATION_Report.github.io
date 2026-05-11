@@ -59,103 +59,171 @@
       <div class="container">
         <h2 class="section__num">2. Methodology</h2>
 
-        <div class="tabs" role="tablist" aria-label="Methodology subsections">
-          <button class="tab" role="tab" aria-selected="true" aria-controls="panel-why" id="tab-why" tabindex="0">2.1 Why SAC</button>
-          <button class="tab" role="tab" aria-selected="false" aria-controls="panel-arch" id="tab-arch" tabindex="-1">2.2 Architecture</button>
-          <button class="tab" role="tab" aria-selected="false" aria-controls="panel-config" id="tab-config" tabindex="-1">2.3 Configuration</button>
-          <button class="tab" role="tab" aria-selected="false" aria-controls="panel-code" id="tab-code" tabindex="-1">2.4 Code</button>
-          <span class="tabs__indicator" aria-hidden="true"></span>
+        <p class="section__body">
+          This project uses Stable-Baselines3 (SB3) to implement Soft Actor-Critic (SAC) as a reinforcement learning framework for continuous-control training. The methodology centres on how the agent is constructed, how experience is gathered, how learning occurs across timesteps, and how training progress is interpreted.
+        </p>
+
+        <h3 class="section__subtitle">2.1 Reinforcement Learning Framework</h3>
+        <p class="section__body">
+          The model is trained within a reinforcement learning setting in which an agent interacts with an environment over repeated cycles. At each timestep, the agent receives an observation of the environment, selects an action, receives a reward signal, and transitions to a new state. This loop produces the training data from which the policy is learned.
+        </p>
+        <p class="section__body">
+          In this setup, Stable-Baselines3 provides the implementation infrastructure, while Soft Actor-Critic provides the learning logic. SB3 handles the neural network training pipeline, replay buffer management, optimisation loop, checkpointing, and interaction with Gymnasium or MuJoCo environments. SAC serves as the algorithmic core that updates the policy and value functions.
+        </p>
+
+        <h3 class="section__subtitle">2.2 Choice of Algorithm: Soft Actor-Critic</h3>
+        <p class="section__body">
+          Soft Actor-Critic is used because it is designed for continuous action spaces, which makes it suitable for robotic control, locomotion, articulated motion, and other environments where actions are real-valued rather than discrete. SAC is an off-policy algorithm, meaning that it stores previously collected transitions in a replay buffer and reuses them during training. This increases sample efficiency and stabilises learning.
+        </p>
+        <p class="section__body">
+          The SAC framework consists of three interdependent components:
+        </p>
+        <ul class="section__list">
+          <li><strong>Actor network:</strong> learns a stochastic policy that maps observations to actions.</li>
+          <li><strong>Critic networks:</strong> estimate the expected return of actions taken in particular states.</li>
+          <li><strong>Target critic networks:</strong> stabilise learning by slowly tracking the critic parameters.</li>
+        </ul>
+        <p class="section__body">
+          SAC also introduces an entropy objective, which encourages the policy to remain exploratory during training. Rather than collapsing immediately into a narrow deterministic behaviour, the agent continues to sample from a distribution over actions. This is important during early and middle stages of training, especially in environments where useful behaviour emerges gradually.
+        </p>
+
+        <h3 class="section__subtitle">2.3 Environment and Agent Interaction</h3>
+        <p class="section__body">
+          The training environment is instantiated through Gymnasium, typically with a continuous-control task such as MuJoCo locomotion. Once initialised, the agent begins interacting with the environment step by step.
+        </p>
+        <p class="section__body">
+          Each timestep includes the following sequence:
+        </p>
+        <ol class="section__list section__list--ordered">
+          <li>The environment provides the current observation.</li>
+          <li>The actor network selects an action.</li>
+          <li>The environment executes the action.</li>
+          <li>A reward is returned.</li>
+          <li>The resulting transition is stored in replay memory.</li>
+        </ol>
+        <p class="section__body">
+          This sequence defines one timestep. Therefore, a label such as "400,000 timesteps" means that this interaction cycle occurred 400,000 times. It is a measure of training duration and data accumulation, not a measure of success by itself.
+        </p>
+
+        <h3 class="section__subtitle">2.4 Data Collection and Replay Buffer</h3>
+        <p class="section__body">
+          All interaction data is stored in a replay buffer. Each stored transition includes:
+        </p>
+        <ul class="section__list">
+          <li>current state or observation</li>
+          <li>action taken</li>
+          <li>reward received</li>
+          <li>next observation</li>
+          <li>terminal or truncation flag</li>
+        </ul>
+        <p class="section__body">
+          Because SAC is off-policy, the model does not train only on the newest transition. Instead, it repeatedly samples mini-batches from this replay buffer. This allows the agent to learn from a broader distribution of past experience and reduces the instability that can arise from relying only on recent rollouts.
+        </p>
+
+        <h3 class="section__subtitle">2.5 Learning Procedure</h3>
+        <p class="section__body">
+          Training proceeds iteratively during interaction with the environment. After enough transitions are collected, the model begins gradient-based updates. These updates occur in three linked stages:
+        </p>
+        <div class="factors">
+          <div class="factor">
+            <h3>Critic Update</h3>
+            <p>The critic networks are trained to estimate the expected future return of state-action pairs. SAC uses twin critics to reduce overestimation bias. The target value is computed using target networks and the next-state policy distribution.</p>
+          </div>
+          <div class="factor">
+            <h3>Actor Update</h3>
+            <p>The actor network is trained to choose actions that maximise expected return while also preserving entropy. This means the policy is optimised not only for reward, but also for controlled stochasticity.</p>
+          </div>
+          <div class="factor">
+            <h3>Target Network Update</h3>
+            <p>The target critics are not copied abruptly. They are updated gradually through soft updates, which improves numerical stability and prevents oscillation.</p>
+          </div>
         </div>
+        <p class="section__body">
+          This cycle repeats throughout training. Over time, the policy becomes better aligned with the reward structure of the environment.
+        </p>
 
-        <div class="panels">
+        <h3 class="section__subtitle">2.6 Meaning of 400,000 Timesteps</h3>
+        <p class="section__body">
+          The expression "400,000 Timesteps" refers to the total number of environment interaction steps used during training. It is therefore a description of the training horizon. In methodological terms, it marks the scale of exposure the agent has had to the task.
+        </p>
+        <p class="section__body">
+          This number functions as a reporting condition in three ways:
+        </p>
+        <ul class="section__list">
+          <li>It indicates the quantity of collected experience.</li>
+          <li>It identifies a checkpoint in the training trajectory.</li>
+          <li>It allows comparison with earlier or later runs.</li>
+        </ul>
+        <p class="section__body">
+          A video titled with a specific timestep value shows the behaviour of the agent after that amount of training. It is a snapshot of the policy at that point in learning.
+        </p>
 
-          <div class="panel panel--active" role="tabpanel" id="panel-why" aria-labelledby="tab-why">
-            <p class="section__body">The project began with PPO but migrated to SAC. The transition was driven by five factors:</p>
-            <div class="factors">
-              <div class="factor">
-                <h3>Sample Efficiency</h3>
-                <p>SAC is off-policy. It stores every experience in a 1M-capacity replay buffer and reuses them for multiple gradient updates. PPO discards data after one update pass. Result: SAC learns to walk in far fewer environment steps with the same GPU budget.</p>
-              </div>
-              <div class="factor">
-                <h3>GPU Utilization</h3>
-                <p>SAC repeatedly samples training batches from the replay buffer and performs dense tensor ops, keeping the GPU saturated. PPO's collect-once, update-once cycle is more CPU-bound and underutilises GPU throughput.</p>
-              </div>
-              <div class="factor">
-                <h3>Exploration</h3>
-                <p>SAC incorporates entropy maximisation directly into its objective function. The agent is rewarded for maintaining uncertainty, driving wide exploration of the action space. PPO relies on fixed noise schedules that can converge to local optima prematurely.</p>
-              </div>
-              <div class="factor">
-                <h3>Continuous Control</h3>
-                <p>SAC's twin-Q architecture mitigates value overestimation bias, a known failure mode in continuous control. This is critical for Humanoid's 17-degree-of-freedom action space. PPO's clipped surrogate objective is simpler but empirically less effective for high-DoF locomotion.</p>
-              </div>
-              <div class="factor">
-                <h3>Empirical Results</h3>
-                <p>PPO Humanoid-v5 plateaued at 250K timesteps with marginal walking quality. SAC Humanoid-v4 scaled to 800K with measurably more fluid gait at every checkpoint — from rough stumbling at 200K to stable walking at 800K.</p>
-              </div>
-            </div>
-          </div>
+        <h3 class="section__subtitle">2.7 Implementation Procedure</h3>
+        <p class="section__body">
+          A standard implementation procedure is as follows:
+        </p>
+        <ol class="section__list section__list--ordered">
+          <li>Import the environment through Gymnasium.</li>
+          <li>Instantiate the SAC model using SB3.</li>
+          <li>Set the policy architecture, logging parameters, and device configuration.</li>
+          <li>Train the model for a defined number of timesteps.</li>
+          <li>Save checkpoints during training.</li>
+          <li>Reload the trained model for evaluation or rendering.</li>
+          <li>Assess behaviour qualitatively through rollout videos and quantitatively through episode rewards.</li>
+        </ol>
+        <p class="section__body">
+          In code, this appears as:
+        </p>
+        <pre class="code-block">model = SAC("MlpPolicy", env, verbose=1)
+model.learn(total_timesteps=400_000)
+model.save("sac_model")</pre>
+        <p class="section__body">
+          This sequence operationalises the methodology. The title in question is effectively the caption for the result of this process.
+        </p>
 
-          <div class="panel" role="tabpanel" id="panel-arch" aria-labelledby="tab-arch" hidden>
-            <p class="section__body">SAC is an off-policy actor-critic algorithm with three architectural innovations:</p>
-            <div class="factors">
-              <div class="factor">
-                <h3>Actor (Policy Network)</h3>
-                <p>Maps observations to action distributions. Updated to maximise both expected return and entropy, balancing exploitation with exploration.</p>
-              </div>
-              <div class="factor">
-                <h3>Twin Critics (Q₁, Q₂)</h3>
-                <p>Two Q-networks reduce overestimation bias by taking the minimum of their outputs. Target networks use soft Polyak averaging (&tau; = 0.005) for stable learning.</p>
-              </div>
-              <div class="factor">
-                <h3>Entropy Regularisation</h3>
-                <p>Temperature &alpha; is learned automatically. High &alpha; drives exploration early; lower &alpha; narrows the policy as gait skill improves.</p>
-              </div>
-              <div class="factor">
-                <h3>Replay Buffer</h3>
-                <p>FIFO buffer of 1,000,000 transitions (s, a, r, s&prime;). Batches of 256 are sampled uniformly for each gradient step. Enables repeated reuse of past experience.</p>
-              </div>
-            </div>
-          </div>
+        <h3 class="section__subtitle">2.8 Evaluation and Interpretation</h3>
+        <p class="section__body">
+          After training, the learned policy is evaluated by running the model in the environment without further optimisation. This stage may include visual rendering, reward logging, checkpoint comparison, and analysis of behavioural consistency.
+        </p>
+        <p class="section__body">
+          The timestep value alone does not report evaluation metrics. It does not reveal whether the agent performed well, whether the reward converged, or whether the learned behaviour generalized robustly. It only identifies the library, the algorithm, and the total number of interaction steps. Methodologically, this means the timestep label should be interpreted as a training descriptor, not a full performance claim.
+        </p>
 
-          <div class="panel" role="tabpanel" id="panel-config" aria-labelledby="tab-config" hidden>
-            <table class="config-table">
-              <thead>
-                <tr><th>Parameter</th><th>Value</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>Environment</td><td>Humanoid-v4 (MuJoCo)</td></tr>
-                <tr><td>Algorithm</td><td>SAC (Soft Actor-Critic)</td></tr>
-                <tr><td>Total Timesteps</td><td>800,000</td></tr>
-                <tr><td>Save Interval</td><td>Every 25,000 steps</td></tr>
-                <tr><td>Batch Size</td><td>256</td></tr>
-                <tr><td>Learning Rate</td><td>3 × 10<sup>−4</sup></td></tr>
-                <tr><td>Replay Buffer Capacity</td><td>1,000,000</td></tr>
-                <tr><td>Discount (&gamma;)</td><td>0.99</td></tr>
-                <tr><td>Soft Update (&tau;)</td><td>0.005</td></tr>
-                <tr><td>Network Architecture</td><td>MLP (256, 256)</td></tr>
-                <tr><td>Hardware</td><td>NVIDIA GPU (CUDA)</td></tr>
-                <tr><td>Render Resolution</td><td>1920 × 1080 @ 30 fps</td></tr>
-              </tbody>
-            </table>
-          </div>
+        <h3 class="section__subtitle">2.9 Rationale for This Setup</h3>
+        <p class="section__body">
+          This methodology is appropriate when the task requires:
+        </p>
+        <ul class="section__list">
+          <li>continuous motor output</li>
+          <li>iterative trial-and-error learning</li>
+          <li>stable training over long horizons</li>
+          <li>reuse of past experience</li>
+          <li>exploration that remains active during optimisation</li>
+        </ul>
+        <p class="section__body">
+          SAC is well suited to these requirements because it balances reward maximisation with entropy regularisation, while SB3 offers a consistent and reproducible implementation environment.
+        </p>
 
-          <div class="panel" role="tabpanel" id="panel-code" aria-labelledby="tab-code" hidden>
-            <p class="section__body">The training code is structured across several scripts in the <code>src/</code> directory:</p>
-            <table class="config-table">
-              <thead>
-                <tr><th>File</th><th>Purpose</th></tr>
-              </thead>
-              <tbody>
-                <tr><td><code>train_sac.py</code></td><td>Main SAC training loop. Creates env, initialises model, trains in 25K-step chunks with periodic saves.</td></tr>
-                <tr><td><code>render_checkpoints.py</code></td><td>Loads a trained checkpoint, runs 1000 env steps, outputs 1080p MP4.</td></tr>
-                <tr><td><code>train_interactive.py</code></td><td>Interactive training with keyboard controls (pause/resume/restart), periodic evaluation, and preview renders.</td></tr>
-                <tr><td><code>train_continue.py</code></td><td>Resumes training from a saved SAC checkpoint.</td></tr>
-                <tr><td><code>aesthetic_creatures/</code></td><td>Modular v3.0 pipeline: env specs, PPO/art recording, rendering, and CLI scripts.</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-        </div>
+        <h3 class="section__subtitle">2.10 Training Configuration</h3>
+        <table class="config-table">
+          <thead>
+            <tr><th>Parameter</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Environment</td><td>Humanoid-v4 (MuJoCo)</td></tr>
+            <tr><td>Algorithm</td><td>SAC (Soft Actor-Critic)</td></tr>
+            <tr><td>Total Timesteps</td><td>800,000</td></tr>
+            <tr><td>Save Interval</td><td>Every 25,000 steps</td></tr>
+            <tr><td>Batch Size</td><td>256</td></tr>
+            <tr><td>Learning Rate</td><td>3 &times; 10<sup>&minus;4</sup></td></tr>
+            <tr><td>Replay Buffer Capacity</td><td>1,000,000</td></tr>
+            <tr><td>Discount (&gamma;)</td><td>0.99</td></tr>
+            <tr><td>Soft Update (&tau;)</td><td>0.005</td></tr>
+            <tr><td>Network Architecture</td><td>MLP (256, 256)</td></tr>
+            <tr><td>Hardware</td><td>NVIDIA GPU (CUDA)</td></tr>
+            <tr><td>Render Resolution</td><td>1920 &times; 1080 @ 30 fps</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
